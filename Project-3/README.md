@@ -1,15 +1,30 @@
-# Project 3 — WebGL Shaders
+# Project 3 — Drawing Shapes with WebGL
 
-A collection of progressively-built WebGL applications that generate geometry procedurally using vertex and fragment shaders. Each version builds on the previous one.
+This project is about drawing shapes directly in the browser using WebGL. Instead of using images or a game engine, everything is drawn from scratch using math — the browser figures out where to put each point and what color to make it.
 
-## Programs
+Each version of the program builds on the one before it, starting simple and getting more complex step by step.
 
-1. [Wireframe Triangle](v1-triangle.html) — An equilateral triangle drawn as a wireframe using `gl.LINE_LOOP`. Vertices are placed procedurally with sine/cosine math in the vertex shader.
+---
 
-2. [10-Sided Filled Polygon](v2-polygon.html) — A filled convex decagon using `gl.TRIANGLE_FAN`. Introduces the uniform variable `N` (number of sides) to control the shape without changing the shader code.
+## Files
 
-3. [Five-Pointed Star](v3-star.html) — A five-pointed star built from the same triangle fan. Even-numbered vertex IDs are placed at the outer radius (tips) and odd-numbered IDs at the inner radius (valleys).
+1. [v1-triangle.html](v1-triangle.html) — **Wireframe Triangle**
+   Draws a simple triangle made of lines. The three corners are calculated using basic circle math so they're spaced evenly apart.
 
-4. [Rotating Star](v4-rotating-star.html) — The same star, animated to spin continuously. A time uniform `t` is added to the angle computation each frame via `requestAnimationFrame`.
+2. [v2-polygon.html](v2-polygon.html) — **10-Sided Filled Polygon**
+   Instead of drawing lines, this one fills in a solid 10-sided shape. Think of it like cutting a pie into 10 equal slices that all meet in the middle. A variable controls how many sides the shape has, so it's easy to change.
 
-5. [Colorful Rotating Star](v5-colorful-star.html) — *(Extra credit)* The rotating star with color interpolation. The `radius` value is passed from the vertex shader to the fragment shader as a varying, and `mix()` blends from red at the center to gold at the tips.
+3. [v3-star.html](v3-star.html) — **Five-Pointed Star**
+   Takes the same pie-slice approach as the polygon but alternates between points that stick out far and points that stay close to the center. That alternating pattern is what makes it look like a star.
+
+4. [v4-rotating-star.html](v4-rotating-star.html) — **Rotating Star**
+   Same star as above, but now it spins. Every time the browser draws a new frame, the angle of each point is shifted a little bit, which makes the star look like it's continuously rotating.
+
+5. [v5-colorful-star.html](v5-colorful-star.html) — **Colorful Rotating Star** *(Extra Credit)*
+   The spinning star but with color. The tips of the star are gold and the center is red, and the color blends smoothly between them as you move from the middle outward.
+
+---
+
+## How to Run
+
+Open any of the `.html` files directly in Chrome (press `Ctrl+O` to open a file). No installation or server needed.
