@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V5 – Colorful Rotating Star (Extra Credit)</title>
+    <style>
+        body { background-color: #888; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        canvas { border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <canvas id="gl-canvas" width="512" height="512"></canvas>
+
+    <!--
+        The vertex shader exports `radius` as an `out` variable.
+        The rasterizer interpolates it across each triangle.
+        The fragment shader uses mix() to blend red (inner) and gold (outer) based on radius.
+    -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        #version 300 es
+
+        uniform float N, t;
+        out float radius;
+
+        void main() {
+            if (gl_VertexID == 0) {
+                radius = 0.0;
+                gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
+                return;
+            }
+
+            float vid = float(gl_VertexID);
+            const float Pi = 3.14159265358979;
+            float angle = vid * 2.0 * Pi / N + t;
+
+            radius = (gl_VertexID % 2 == 0) ? 1.0 : 0.4;
+            vec2 v = radius * vec2(cos(angle), sin(angle));
+            gl_Position = vec4(v, 0.0, 1.0);
+        }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+
+        precision mediump float;
+        in float radius;
+        out vec4 fColor;
+
+        void main() {
+            const vec4 red  = vec4(0.8, 0.0, 0.2, 1.0);
+            const vec4 gold = vec4(1.0, 0.84, 0.0, 1.0);
+            fColor = mix(red, gold, radius);
+        }
+    </script>
+
+    <script src="initShaders.js"></script>
+    <script>
+        window.onload = function () {
+            var canvas = document.getElementById("gl-canvas");
+            var gl = canvas.getContext("webgl2");
+            if (!gl) { alert("WebGL2 is not available in your browser."); return; }
+
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            gl.clearColor(0.3, 0.3, 0.3, 1.0);
+
+            var program = initShaders(gl, "vertex-shader", "fragment-shader");
+            gl.useProgram(program);
+
+            var N = 10;
+            var uN = gl.getUniformLocation(program, "N");
+            gl.uniform1f(uN, N);
+
+            var t = 0.0;
+            var uT = gl.getUniformLocation(program, "t");
+
+            render();
+
+            function render() {
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                t += 0.01;
+                gl.uniform1f(uT, t);
+
+                gl.drawArrays(gl.TRIANGLE_FAN, 0, N + 2);
+                requestAnimationFrame(render);
+            }
+        };
+    </script>
+</body>
+</html>
