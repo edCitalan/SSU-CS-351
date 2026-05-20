@@ -51,20 +51,18 @@ __global__ void iotaKernel(size_t n, DataType* values, DataType startValue) {
 
 | Implementation | Average time (ms) |
 |---|---|
-| CPU (`std::iota`) | *(fill in after running)* |
-| CUDA kernel | *(fill in after running)* |
+| CPU (`std::iota`) | 22.184 |
+| CUDA kernel | 16.676 (81.6 ms first run, ~0.45 ms after warmup) |
 
 ### Question: Are the results what you expected? Why isn't CUDA a great fit here?
 
-Not really — the CUDA version is often **slower** than the CPU version for this workload. Here's why:
+The results were surprising. The first GPU trial took **81.6 ms** — much slower than the CPU's 22 ms — but every trial after that dropped to around **0.45 ms**, roughly 50x faster than the CPU.
 
-`iota` is a pure **memory-bandwidth-bound** operation. Each thread does essentially zero arithmetic — it just writes one value to global memory. For CUDA to win, there needs to be enough computation per byte moved (high arithmetic intensity) to hide the overhead of:
+The slow first run is due to CUDA initialization overhead: loading the GPU driver, allocating device memory, and warming up the CUDA runtime all happen on the first call. After that, the GPU is hot and the kernel itself is extremely fast.
 
-1. **Kernel launch latency** — every GPU launch has fixed startup cost.
-2. **`cudaMalloc` / `cudaMemcpy` overhead** — allocating device memory and copying results back to the host adds significant wall-clock time that the simple benchmark captures.
-3. **Memory bus contention** — thousands of threads all hammering global memory simultaneously can saturate the GPU's memory bus without the computation core doing anything useful.
+So why isn't CUDA a great solution for `iota` in practice? Because `iota` is typically a **one-shot operation** — you call it once, not in a loop. In that real-world scenario, the initialization cost dominates and the GPU loses badly. The CPU's `std::iota` runs in a tight, cache-friendly loop with no startup overhead and wins every time for a single call.
 
-In short, GPUs are optimized for workloads where each thread performs a lot of math on a little data. `iota` is the opposite: no math, lots of data writes. The CPU's `std::iota` runs in a tight, cache-friendly loop that the hardware prefetcher handles very well, making it hard to beat.
+The lesson: GPUs pay off when the same kernel runs many times, or when the computation per element is heavy enough to amortize the setup cost. `iota` does neither.
 
 ---
 
@@ -95,11 +93,7 @@ Output is written to `julia.ppm`.
 
 ### Generated Image
 
-*(Add your rendered image here after running on Oblivus — convert `.ppm` to `.png` with `convert julia.ppm julia.png` then commit it)*
-
-```
 ![Mandelbrot set rendered with CUDA](julia.png)
-```
 
 ### Why CUDA excels here (vs. iota)
 
